@@ -189,6 +189,48 @@
   .srclink{display:inline-flex; align-items:center; gap:7px; margin-top:13px; font-size:12.5px; color:var(--brand); text-decoration:none; font-weight:700;}
   .srclink:hover{text-decoration:underline;}
 
+  /* ---------- View tabs & alternate views ---------- */
+  .views-tabs{display:flex; gap:6px; margin:0 0 18px; flex-wrap:wrap;}
+  .vtab{cursor:pointer; border:1px solid var(--line); background:var(--surface); color:var(--muted); font-family:inherit; font-size:13px; font-weight:700; padding:9px 16px; border-radius:11px; box-shadow:var(--shadow-sm); transition:all .18s ease;}
+  .vtab:hover{color:var(--ink); border-color:#cbd5e1;}
+  .vtab.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+  :root[data-theme="dark"] .vtab.active{background:var(--brand); color:#04201d; border-color:var(--brand);}
+  .vtab:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px;}
+  .panel-h{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:14px;}
+  .panel-h h3{margin:0; font-size:18px; letter-spacing:-.01em; font-family:var(--font-display); font-weight:600;}
+  .panel-h span{color:var(--muted); font-size:12px;}
+  .svgwrap{overflow-x:auto;}
+  .svgwrap svg{width:100%; min-width:560px; height:auto; display:block;}
+  .gl{stroke:var(--line); stroke-width:1;}
+  .ax{fill:var(--muted); font-size:11px; font-family:var(--font-ui);}
+  .axt{fill:var(--ink-soft); font-size:12px; font-weight:700; font-family:var(--font-ui);}
+  .blab{fill:var(--ink-soft); font-size:10px; font-weight:600; font-family:var(--font-ui);}
+  .bub circle{cursor:pointer; transition:fill-opacity .15s ease;} .bub:hover circle{fill-opacity:.95;}
+  .legend2{display:flex; gap:18px; margin-top:12px; font-size:12.5px; color:var(--ink-soft);}
+  .legend2 i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px;}
+
+  .weights{display:flex; gap:18px; flex-wrap:wrap; margin-bottom:16px; padding:14px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px;}
+  .wsl{display:flex; flex-direction:column; gap:5px; font-size:11px; font-weight:700; color:var(--muted); min-width:120px; flex:1 1 120px;}
+  .wsl input{accent-color:var(--brand); cursor:pointer; width:100%;}
+  .wsl b{color:var(--ink); font-size:12px;}
+  table.sctable{width:100%; border-collapse:collapse; min-width:640px; font-size:13px;}
+  .sctable th{text-align:center; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:9px 6px; border-bottom:1px solid var(--line); font-weight:700;}
+  .sctable th:nth-child(2){text-align:left;}
+  .sctable td{padding:11px 6px; border-bottom:1px solid var(--line-soft); text-align:center;}
+  .sctable td.dn{text-align:left; font-weight:600; white-space:nowrap;}
+  .sctable td.rk{color:var(--muted); font-weight:800; font-family:var(--font-display);}
+  .sctable td.sc{color:var(--ink-soft); font-weight:600;}
+  .sctable tr:first-child .comp b{color:var(--brand);}
+  .comp{min-width:130px; white-space:nowrap;}
+  .compbar{display:inline-block; width:78px; height:7px; border-radius:999px; background:var(--line); overflow:hidden; vertical-align:middle; margin-right:8px;}
+  .compbar span{display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--fund-strip));}
+  .comp b{vertical-align:middle; font-size:14px;}
+  #mapcanvas{height:480px; border-radius:12px; overflow:hidden; border:1px solid var(--line);}
+  .maploading{padding:60px; text-align:center; color:var(--muted); font-size:14px;}
+  .leaflet-popup-content{font-family:var(--font-ui); font-size:12.5px; line-height:1.5;}
+
   /* ---------- Verdict & status ---------- */
   .vdot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; background:var(--muted); flex-shrink:0;}
   .vdot.pursue{background:#10b981;} .vdot.watch{background:#f59e0b;} .vdot.pass{background:#f43f5e;}
@@ -297,7 +339,17 @@
     </select>
   </div>
 
-  <div class="grid" id="grid"></div>
+  <div class="views-tabs" id="tabs" role="tablist">
+    <button class="vtab active" data-view="grid">Cards</button>
+    <button class="vtab" data-view="scatter">Risk / Return</button>
+    <button class="vtab" data-view="scorecard">Scorecard</button>
+    <button class="vtab" data-view="map">Map</button>
+  </div>
+
+  <div class="grid view" id="grid"></div>
+  <div class="view" id="scatter" hidden></div>
+  <div class="view" id="scorecard" hidden></div>
+  <div class="view" id="map" hidden></div>
 
   <footer>
     Summaries are AI-extracted from the source decks/memos for quick comparison — verify the numbers against the source documents before any decision.<br>
@@ -523,6 +575,87 @@ function cardHtml(d,i,idx){
   </article>`;
 }
 
+// ---------- analytical metadata (for scatter / scorecard / map) ----------
+const META={
+ "Paladin Cyber Fund III":{retPct:25,risk:5,sizeM:300,lat:38.90,lng:-77.04,scores:[5,2,5,1,3]},
+ "CrossCurrent Equity Partners — Fund I":{retPct:18,risk:4,sizeM:125,lat:30.27,lng:-97.74,scores:[4,3,2,2,4]},
+ "Forest Way Capital — Middle Market":{retPct:12,risk:2,sizeM:50,lat:32.78,lng:-96.80,scores:[3,5,4,3,4]},
+ "Infinity Living":{retPct:18,risk:4,sizeM:60,lat:30.22,lng:-97.77,scores:[4,3,3,3,3]},
+ "The Link at Twin Creeks":{retPct:15.3,risk:4,sizeM:76,lat:33.10,lng:-96.67,scores:[4,2,3,3,3]},
+ "Tate Tanglewood":{retPct:14.1,risk:3,sizeM:56,lat:29.74,lng:-95.46,scores:[3,3,4,3,3]},
+ "Alon at Castle Hills":{retPct:18.5,risk:3,sizeM:37,lat:29.52,lng:-98.56,scores:[4,4,3,2,4]},
+ "LivSmart Studios by Hilton — Fort Walton Beach":{retPct:18,risk:5,sizeM:26,lat:30.42,lng:-86.62,scores:[4,2,2,1,3]},
+ "Crusoe — Series F (SAFE)":{retPct:30,risk:5,sizeM:20,lat:32.45,lng:-99.73,scores:[5,2,4,2,2]}
+};
+const CRITERIA=[["Return",30],["Downside",25],["Sponsor",20],["Liquidity",10],["Terms",15]];
+let WEIGHTS=CRITERIA.map(c=>c[1]);
+function composite(d){const mt=META[d.dealName]; if(!mt)return 0; let t=0,mx=0; mt.scores.forEach((s,i)=>{t+=s*WEIGHTS[i]; mx+=5*WEIGHTS[i];}); return mx?t/mx*100:0;}
+function shortName(n){return n.split(' — ')[0].split(' (')[0];}
+let activeView='grid', lastDeals=[];
+
+function renderScatter(deals){
+  const W=820,H=500,m={t:26,r:24,b:54,l:60}, pw=W-m.l-m.r, ph=H-m.t-m.b;
+  const maxRet=35, minR=0.5, maxR=5.5;
+  const xs=r=>m.l+(r-minR)/(maxR-minR)*pw, ys=v=>m.t+ph-(Math.min(v,maxRet)/maxRet)*ph;
+  const col={Equity:'var(--equity-strip)',Debt:'var(--debt-strip)',Fund:'var(--fund-strip)'};
+  let g='';
+  for(let v=0;v<=maxRet;v+=5){const y=ys(v); g+=`<line x1="${m.l}" y1="${y}" x2="${W-m.r}" y2="${y}" class="gl"/><text x="${m.l-8}" y="${y+4}" class="ax" text-anchor="end">${v}%</text>`;}
+  const rl={1:'Low',3:'Moderate',5:'High'};
+  for(let r=1;r<=5;r++){const x=xs(r); g+=`<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t+ph}" class="gl"/><text x="${x}" y="${m.t+ph+20}" class="ax" text-anchor="middle">${r}${rl[r]?' · '+rl[r]:''}</text>`;}
+  g+=`<text x="${m.l+pw/2}" y="${H-6}" class="axt" text-anchor="middle">Risk →</text>`;
+  g+=`<text x="15" y="${m.t+ph/2}" class="axt" text-anchor="middle" transform="rotate(-90 15 ${m.t+ph/2})">Target return (approx.) →</text>`;
+  deals.forEach(d=>{const mt=META[d.dealName]; if(!mt)return; const x=xs(mt.risk),y=ys(mt.retPct),rad=Math.max(9,Math.min(34,Math.sqrt(mt.sizeM)*2.3));
+    g+=`<g class="bub"><circle cx="${x}" cy="${y}" r="${rad}" fill="${col[d.type]}" fill-opacity="0.68" stroke="${col[d.type]}" stroke-width="1.5"><title>${esc(d.dealName)} — ${esc(d.returnHead)} · risk ${mt.risk}/5 · ~$${mt.sizeM}M</title></circle><text x="${x}" y="${y-rad-4}" class="blab" text-anchor="middle">${esc(shortName(d.dealName))}</text></g>`;});
+  document.getElementById('scatter').innerHTML=`<div class="panel"><div class="panel-h"><h3>Risk / Return map</h3><span>Bubble = deal size · figures are indicative — verify before deciding</span></div><div class="svgwrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Risk versus return scatter">${g}</svg></div><div class="legend2">${Object.keys(col).map(t=>`<span><i style="background:${col[t]}"></i>${t}</span>`).join('')}</div></div>`;
+}
+
+function renderScorecard(deals){
+  const rows=deals.map(d=>({d,score:composite(d)})).sort((a,b)=>b.score-a.score);
+  const marks=getMarks();
+  const sliders=CRITERIA.map((c,i)=>`<label class="wsl"><span>${c[0]}</span><input type="range" min="0" max="50" value="${WEIGHTS[i]}" data-i="${i}" aria-label="${c[0]} weight"><b>${WEIGHTS[i]}%</b></label>`).join('');
+  const trows=rows.map((r,idx)=>{const mt=META[r.d.dealName]||{scores:[0,0,0,0,0]}; const v=(marks[r.d.dealName]||{}).verdict||'';
+    const cells=mt.scores.map(s=>`<td class="sc">${s}</td>`).join('');
+    return `<tr><td class="rk">${idx+1}</td><td class="dn"><span class="vdot ${v}"></span>${esc(r.d.dealName)}</td><td><span class="badge ${r.d.type}"><i></i>${r.d.type}</span></td>${cells}<td class="comp"><span class="compbar"><span style="width:${r.score}%"></span></span><b>${Math.round(r.score)}</b></td></tr>`;}).join('');
+  document.getElementById('scorecard').innerHTML=`<div class="panel"><div class="panel-h"><h3>Weighted scorecard</h3><span>Drag the weights — ranking updates live. Scores (1–5) are suggested from the materials.</span></div><div class="weights">${sliders}</div><div class="svgwrap"><table class="sctable"><thead><tr><th>#</th><th>Deal</th><th>Type</th>${CRITERIA.map(c=>`<th>${c[0]}</th>`).join('')}<th>Score</th></tr></thead><tbody>${trows}</tbody></table></div></div>`;
+  document.querySelectorAll('.weights input').forEach(inp=>inp.addEventListener('input',()=>{WEIGHTS[+inp.dataset.i]=+inp.value; renderScorecard(lastDeals);}));
+}
+
+let _map,_layer,_mapLoading;
+function renderMap(deals){
+  const el=document.getElementById('map');
+  if(typeof L==='undefined'){
+    el.innerHTML='<div class="panel"><div class="maploading">Loading map…</div></div>';
+    if(!_mapLoading){_mapLoading=true;
+      const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(css);
+      const s=document.createElement('script'); s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.onload=()=>{_mapLoading=false; if(activeView==='map') renderMap(lastDeals);};
+      s.onerror=()=>{el.innerHTML='<div class="panel"><div class="maploading">The map needs an internet connection to load. Other views work offline.</div></div>';};
+      document.head.appendChild(s);
+    }
+    return;
+  }
+  if(!_map){
+    el.innerHTML='<div class="panel"><div class="panel-h"><h3>Deal locations</h3><span>Funds / lenders shown at HQ or a representative metro</span></div><div id="mapcanvas"></div></div>';
+    _map=L.map('mapcanvas',{scrollWheelZoom:false}).setView([31,-95],4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(_map);
+    _layer=L.layerGroup().addTo(_map);
+  }
+  _layer.clearLayers();
+  const col={Equity:'#10b981',Debt:'#f59e0b',Fund:'#8b5cf6'}, pts=[];
+  deals.forEach(d=>{const mt=META[d.dealName]; if(!mt)return; pts.push([mt.lat,mt.lng]);
+    L.circleMarker([mt.lat,mt.lng],{radius:9,color:'#fff',weight:2,fillColor:col[d.type],fillOpacity:.9})
+      .bindPopup(`<b>${esc(d.dealName)}</b><br>${d.type} · ${esc(d.returnHead)}<br>${esc(d.location)}`).addTo(_layer);});
+  if(pts.length) _map.fitBounds(pts,{padding:[40,40],maxZoom:7});
+  setTimeout(()=>_map.invalidateSize(),60);
+}
+
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('.vtab'); if(!b)return;
+  activeView=b.dataset.view;
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t===b));
+  render();
+});
+
 function render(){
   const q=searchEl.value.trim().toLowerCase();
   const vf=document.getElementById('vfilter').value, sf=document.getElementById('sfilter').value;
@@ -536,9 +669,15 @@ function render(){
     if(mode==='type')return a.d.type.localeCompare(b.d.type)||a.d.dealName.localeCompare(b.d.dealName);
     return a.d.dealName.localeCompare(b.d.dealName);
   });
-  grid.innerHTML=list.length?list.map(({d,i},idx)=>cardHtml(d,i,idx)).join(''):'<div class="empty">No deals match your filters.</div>';
-  firstPaint=false;
-  bind();
+  lastDeals=list.map(x=>x.d);
+  document.querySelectorAll('.view').forEach(v=>{v.hidden = v.id!==activeView;});
+  if(activeView==='grid'){
+    grid.innerHTML=list.length?list.map(({d,i},idx)=>cardHtml(d,i,idx)).join(''):'<div class="empty">No deals match your filters.</div>';
+    firstPaint=false;
+    bind();
+  } else if(activeView==='scatter'){ renderScatter(lastDeals); }
+  else if(activeView==='scorecard'){ renderScorecard(lastDeals); }
+  else if(activeView==='map'){ renderMap(lastDeals); }
 }
 function bind(){
   grid.querySelectorAll('.toggle').forEach(btn=>{
