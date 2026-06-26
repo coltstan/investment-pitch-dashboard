@@ -189,6 +189,38 @@
   .srclink{display:inline-flex; align-items:center; gap:7px; margin-top:13px; font-size:12.5px; color:var(--brand); text-decoration:none; font-weight:700;}
   .srclink:hover{text-decoration:underline;}
 
+  /* ---------- Verdict & status ---------- */
+  .vdot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; background:var(--muted); flex-shrink:0;}
+  .vdot.pursue{background:#10b981;} .vdot.watch{background:#f59e0b;} .vdot.pass{background:#f43f5e;}
+  .card h3{display:flex; align-items:center;}
+  .vbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:14px; border-top:1px solid var(--line);}
+  .verdicts{display:flex; gap:3px; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:3px;}
+  .vbtn{cursor:pointer; border:none; background:none; font-family:inherit; font-size:11.5px; font-weight:700; color:var(--muted); padding:6px 10px; border-radius:7px; transition:all .15s ease;}
+  .vbtn:hover{color:var(--ink);}
+  .vbtn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+  .vbtn.on[data-v="pursue"]{background:#10b981; color:#fff;}
+  .vbtn.on[data-v="watch"]{background:#f59e0b; color:#241803;}
+  .vbtn.on[data-v="pass"]{background:#f43f5e; color:#fff;}
+  .status-sel{cursor:pointer; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 8px; border-radius:9px; outline:none;}
+  .status-sel:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+  .pdf-btn{cursor:pointer; margin-left:auto; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-family:inherit; font-size:11.5px; font-weight:700; padding:7px 11px; border-radius:9px; transition:all .15s ease;}
+  .pdf-btn:hover{border-color:var(--brand); color:var(--brand);}
+  .pdf-btn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+
+  @media print{
+    @page{margin:14mm;}
+    :root, :root[data-theme="dark"]{ --surface:#fff; --surface-2:#fff; --ink:#0b1220; --ink-soft:#33405a; --muted:#5b6b80; --line:#d7deea; --why-bg:#eef6f4; --why-line:#0f766e; --why-ink:#0b4f49; --good-dot:#0a8f5b; --bad-dot:#c2334d; --ret:#0b7a5e; --strip:#0f766e; }
+    html,body{background:#fff !important;}
+    .hero,.controls,footer{display:none !important;}
+    .grid{display:block !important;}
+    .card{display:none !important;}
+    .card.print-target{display:flex !important; break-inside:avoid; box-shadow:none !important; transform:none !important; border:1px solid #d7deea !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .card.print-target .toggle,.card.print-target .vbar{display:none !important;}
+    .card.print-target .details{max-height:none !important; overflow:visible !important;}
+    .card.print-target .thumb:has(.thumb-fallback){display:none !important;}
+    .card.print-target .thumb img{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  }
+
   .empty{grid-column:1/-1; padding:60px; text-align:center; color:var(--muted); font-size:14px;}
   footer{margin-top:30px; color:var(--muted); font-size:12px; text-align:center; line-height:1.7;}
 
@@ -249,14 +281,27 @@
       <option value="return">Sort: Target return (high→low)</option>
       <option value="type">Sort: Type</option>
     </select>
+    <select id="vfilter" aria-label="Filter by verdict">
+      <option value="all">All verdicts</option>
+      <option value="pursue">Pursue</option>
+      <option value="watch">Watch</option>
+      <option value="pass">Pass</option>
+      <option value="none">Unrated</option>
+    </select>
+    <select id="sfilter" aria-label="Filter by stage">
+      <option value="all">All stages</option>
+      <option value="New">New</option>
+      <option value="Reviewing">Reviewing</option>
+      <option value="Diligence">Diligence</option>
+      <option value="Decided">Decided</option>
+    </select>
   </div>
 
   <div class="grid" id="grid"></div>
 
   <footer>
     Summaries are AI-extracted from the source decks/memos for quick comparison — verify the numbers against the source documents before any decision.<br>
-    9 deals · June 2026
-  </footer>
+    9 deals · June 2026</footer>
 </div>
 
 <script>
@@ -413,7 +458,24 @@ const THUMB_ICON={
   Fund:'<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7" rx="1"/><rect x="12" y="6" width="3" height="11" rx="1"/><rect x="17" y="13" width="3" height="4" rx="1"/></svg>'
 };
 
+const STATUSES=["New","Reviewing","Diligence","Decided"];
+function getMarks(){try{return JSON.parse(localStorage.getItem('dash-marks')||'{}');}catch(e){return {};}}
+function saveMarks(m){try{localStorage.setItem('dash-marks',JSON.stringify(m));}catch(e){}}
+function markOf(n){const m=getMarks()[n]||{};return {verdict:m.verdict||'',status:m.status||'New'};}
+function setMark(n,p){const a=getMarks();a[n]=Object.assign({},a[n],p);saveMarks(a);}
+const PDF_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h9l3 3v4"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>';
+function afterMark(){
+  const vf=document.getElementById('vfilter').value, sf=document.getElementById('sfilter').value;
+  if(vf!=='all'||sf!=='all'){render();return;}
+  grid.querySelectorAll('.vbar').forEach(bar=>{
+    const mk=markOf(bar.dataset.deal);
+    bar.querySelectorAll('.vbtn').forEach(b=>b.classList.toggle('on',b.dataset.v===mk.verdict));
+    const dot=bar.closest('.card').querySelector('.vdot'); if(dot)dot.className='vdot '+(mk.verdict||'');
+  });
+}
+
 function cardHtml(d,i,idx){
+  const mk=markOf(d.dealName);
   return `
   <article class="card t-${d.type} ${firstPaint?'in':''}" style="animation-delay:${idx*55}ms">
     <div class="thumb">${d.img?`<img src="${d.img}" alt="${esc(d.dealName)}" loading="lazy"><span class="thumb-tag">${d.imgTag||'Asset'}</span>`:`<span class="thumb-fallback">${THUMB_ICON[d.type]||''}</span>`}</div>
@@ -421,7 +483,7 @@ function cardHtml(d,i,idx){
       <span class="badge ${d.type}"><i></i>${d.type}</span>
       <div class="ret"><div class="v">${esc(d.returnHead)}</div><div class="l">Target Return</div></div>
     </div>
-    <h3>${esc(d.dealName)}</h3>
+    <h3><span class="vdot ${mk.verdict}" title="Verdict"></span>${esc(d.dealName)}</h3>
     <div class="sub">${esc(d.sponsor)} · ${esc(d.location)}</div>
 
     <div class="lbl">What they do</div>
@@ -449,14 +511,25 @@ function cardHtml(d,i,idx){
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
         Open source document</a>`:''}
     </div></div>
+    <div class="vbar" data-deal="${esc(d.dealName)}">
+      <div class="verdicts">
+        <button class="vbtn ${mk.verdict==='pursue'?'on':''}" data-v="pursue">Pursue</button>
+        <button class="vbtn ${mk.verdict==='watch'?'on':''}" data-v="watch">Watch</button>
+        <button class="vbtn ${mk.verdict==='pass'?'on':''}" data-v="pass">Pass</button>
+      </div>
+      <select class="status-sel" aria-label="Pipeline stage">${STATUSES.map(s=>`<option ${mk.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="pdf-btn" title="Export this deal as a one-page PDF">${PDF_ICON} PDF</button>
+    </div>
   </article>`;
 }
 
 function render(){
   const q=searchEl.value.trim().toLowerCase();
+  const vf=document.getElementById('vfilter').value, sf=document.getElementById('sfilter').value;
   let list=DEALS.map((d,i)=>({d,i}))
     .filter(({d})=>activeType==='all'||d.type===activeType)
-    .filter(({d})=>!q||(d.dealName+' '+d.sponsor+' '+d.assetClass+' '+d.location+' '+d.whatTheyDo).toLowerCase().includes(q));
+    .filter(({d})=>!q||(d.dealName+' '+d.sponsor+' '+d.assetClass+' '+d.location+' '+d.whatTheyDo).toLowerCase().includes(q))
+    .filter(({d})=>{const mk=markOf(d.dealName); return (vf==='all'||(vf==='none'?!mk.verdict:mk.verdict===vf))&&(sf==='all'||mk.status===sf);});
   const mode=sortEl.value;
   list.sort((a,b)=>{
     if(mode==='return')return b.d.returnSort-a.d.returnSort;
@@ -473,6 +546,24 @@ function bind(){
       const card=btn.closest('.card');
       const open=card.classList.toggle('open');
       btn.setAttribute('aria-expanded',open);
+    });
+  });
+  grid.querySelectorAll('.vbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const name=btn.closest('.vbar').dataset.deal, v=btn.dataset.v;
+      setMark(name,{verdict: markOf(name).verdict===v?'':v});
+      afterMark();
+    });
+  });
+  grid.querySelectorAll('.status-sel').forEach(sel=>{
+    sel.addEventListener('change',()=>{setMark(sel.closest('.vbar').dataset.deal,{status:sel.value}); afterMark();});
+  });
+  grid.querySelectorAll('.pdf-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const card=btn.closest('.card');
+      document.querySelectorAll('.card').forEach(c=>c.classList.remove('print-target'));
+      card.classList.add('print-target','open');
+      window.print();
     });
   });
 }
@@ -495,6 +586,9 @@ document.getElementById('chips').addEventListener('click',e=>{
 });
 searchEl.addEventListener('input',render);
 sortEl.addEventListener('change',render);
+document.getElementById('vfilter').addEventListener('change',render);
+document.getElementById('sfilter').addEventListener('change',render);
+window.addEventListener('afterprint',()=>document.querySelectorAll('.print-target').forEach(c=>c.classList.remove('print-target')));
 render();
 </script>
 </body>
