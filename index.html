@@ -120,6 +120,10 @@
   .dl-btn:hover{filter:brightness(1.08); transform:translateY(-1px);}
   .dl-btn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
   :root[data-theme="dark"] .dl-btn{color:#04201d;}
+  .dl-btn.alt{background:transparent; color:var(--brand);}
+  .dl-btn.alt:hover{background:var(--surface-2); filter:none;}
+  :root[data-theme="dark"] .dl-btn.alt{color:var(--brand);}
+  .dl-btn[disabled]{opacity:.6; cursor:default; transform:none;}
 
   /* ---------- Grid + cards ---------- */
   .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
@@ -254,6 +258,32 @@
   .pdf-btn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 
   #printsheet{display:none;}
+  /* always-on (explicit light) styles so the brief renders for both Print and the jsPDF download */
+  #printsheet .ps-cover{padding:0 0 12px; border-bottom:2px solid #0f766e; margin-bottom:14px;}
+  #printsheet .ps-mark{font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0f766e;}
+  #printsheet h1{font-family:var(--font-display); font-size:28px; margin:5px 0 6px; color:#0b1220;}
+  #printsheet .ps-meta{font-size:11px; color:#5b6b80; line-height:1.5;}
+  #printsheet .ps-group{font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; color:#33405a; font-weight:700; margin:16px 0 9px; padding-bottom:5px; border-bottom:1px solid #d7deea;}
+  #printsheet .ps-group span{background:#eef2f7; color:#33405a; border-radius:999px; padding:1px 8px; font-size:10.5px; margin-left:4px;}
+  #printsheet .ps-deal{display:flex; gap:13px; padding:11px 13px; border:1px solid #d7deea; border-left:4px solid #94a3b8; border-radius:9px; margin-bottom:11px; background:#fff;}
+  #printsheet .ps-deal.t-Equity{border-left-color:#10b981;}
+  #printsheet .ps-deal.t-Debt{border-left-color:#f59e0b;}
+  #printsheet .ps-deal.t-Fund{border-left-color:#8b5cf6;}
+  #printsheet .ps-img{width:148px; flex:0 0 148px;}
+  #printsheet .ps-img img{width:100%; height:106px; object-fit:cover; border-radius:7px; display:block;}
+  #printsheet .ps-noimg{display:flex; align-items:center; justify-content:center; height:106px; background:#eef2f7; border-radius:7px; color:#94a3b8; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.06em;}
+  #printsheet .ps-b{flex:1; min-width:0;}
+  #printsheet .ps-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+  #printsheet .ps-badge{font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap;}
+  #printsheet .ps-badge.t-Equity{color:#047857; background:#e8f7f0;}
+  #printsheet .ps-badge.t-Debt{color:#b45309; background:#fdf4e7;}
+  #printsheet .ps-badge.t-Fund{color:#6d28d9; background:#f3eefe;}
+  #printsheet .ps-ret{font-weight:700; color:#0b7a5e; font-size:11.5px; text-align:right;}
+  #printsheet h3{font-size:15px; margin:4px 0 1px; color:#0b1220;}
+  #printsheet .ps-sub{font-size:10.5px; color:#5b6b80; margin-bottom:5px;}
+  #printsheet .ps-b p{font-size:11px; line-height:1.45; margin:0 0 6px; color:#33405a;}
+  #printsheet .ps-facts{font-size:10.5px; color:#33405a;}
+  #printsheet.cap{display:block; position:fixed; left:-99999px; top:0; width:820px; padding:24px; background:#fff; z-index:-1;}
 
   @media print{
     @page{margin:12mm;}
@@ -371,6 +401,10 @@
     <button class="dl-btn" id="dlBtn" title="Download all deals as a one-PDF brief">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
       Download PDF
+    </button>
+    <button class="dl-btn alt" id="printBtn" title="Open the browser print dialog (Print or Save as PDF)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+      Print
     </button>
   </div>
 
@@ -581,7 +615,7 @@ function cardHtml(d,i,idx){
   <article class="card t-${d.type} ${firstPaint?'in':''}" style="animation-delay:${idx*55}ms">
     <div class="thumb">${d.img?`<img src="${d.img}" alt="${esc(d.dealName)}" loading="lazy"><span class="thumb-tag">${d.imgTag||'Asset'}</span>`:`<span class="thumb-fallback">${THUMB_ICON[d.type]||''}</span>`}</div>
     <div class="c-head">
-      <span class="badge ${d.type}"><i></i>${d.type}</span>
+      <span class="ps-badge t-${d.type}">${d.type}</span>
       <div class="ret"><div class="v">${esc(d.returnHead)}</div><div class="l">Target Return</div></div>
     </div>
     <h3><span class="vdot ${mk.verdict}" title="Verdict"></span>${esc(d.dealName)}</h3>
@@ -790,7 +824,40 @@ function buildPrintSheet(){
   });
   document.getElementById('printsheet').innerHTML=html;
 }
-document.getElementById('dlBtn').addEventListener('click',()=>{buildPrintSheet(); document.body.classList.add('print-all'); setTimeout(()=>window.print(),80);});
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s);});}
+let _pdfLibs;
+function ensurePdfLibs(){
+  if(window.jspdf && window.html2canvas) return Promise.resolve();
+  if(!_pdfLibs) _pdfLibs=Promise.all([
+    loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'),
+    loadScript('https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js')
+  ]);
+  return _pdfLibs;
+}
+async function downloadPDF(btn){
+  const old=btn.innerHTML; btn.disabled=true; btn.innerHTML='Building PDF…';
+  const ps=document.getElementById('printsheet');
+  try{
+    await ensurePdfLibs();
+    buildPrintSheet();
+    ps.classList.add('cap');
+    const pdf=new window.jspdf.jsPDF('p','pt','a4');
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight(), m=28, cw=pw-m*2;
+    let y=m;
+    for(const el of [...ps.children]){
+      const canvas=await window.html2canvas(el,{scale:2,backgroundColor:'#ffffff',logging:false,useCORS:true});
+      const ih=canvas.height*(cw/canvas.width);
+      if(y+ih>ph-m && y>m){ pdf.addPage(); y=m; }
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',m,y,cw,ih);
+      y+=ih+8;
+    }
+    pdf.save('Investment Pitch Brief.pdf');
+  }catch(e){
+    alert('Could not build the PDF (it needs an internet connection the first time). You can use the Print button → "Save as PDF" instead.');
+  }finally{ ps.classList.remove('cap'); btn.disabled=false; btn.innerHTML=old; }
+}
+document.getElementById('dlBtn').addEventListener('click',function(){downloadPDF(this);});
+document.getElementById('printBtn').addEventListener('click',()=>{buildPrintSheet(); document.body.classList.add('print-all'); setTimeout(()=>window.print(),80);});
 
 render();
 </script>
