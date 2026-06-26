@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Pitch Dashboard</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --panel:#ffffff;
+    --line:#e2e8f0; --line2:#f1f5f9; --accent:#1e293b;
+    --equity:#059669; --equity-bg:#ecfdf5;
+    --debt:#b45309; --debt-bg:#fffbeb;
+    --fund:#6d28d9; --fund-bg:#f5f3ff;
+    --why-bg:#eff6ff; --why-line:#3b82f6; --why-ink:#1e3a8a;
+    --good:#047857; --bad:#b91c1c; --good-dot:#10b981; --bad-dot:#ef4444;
+    --shadow:0 1px 2px rgba(15,23,42,.05),0 10px 30px rgba(15,23,42,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:#eef2f6; color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.55;}
+  .wrap{max-width:1280px; margin:0 auto; padding:30px 22px 90px;}
+
+  header.top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:24px;}
+  .title h1{font-size:27px; margin:0 0 5px; letter-spacing:-.02em;}
+  .title p{margin:0; color:var(--muted); font-size:14px; max-width:560px;}
+  .meta{display:flex; gap:10px; flex-wrap:wrap;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 16px; box-shadow:var(--shadow); text-align:center; min-width:74px;}
+  .stat b{display:block; font-size:22px; line-height:1; letter-spacing:-.02em;}
+  .stat span{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+
+  .controls{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:20px;}
+  .search{flex:1 1 240px; position:relative;}
+  .search input{width:100%; padding:11px 14px 11px 38px; border:1px solid var(--line); border-radius:10px;
+    font-size:14px; background:var(--panel); color:var(--ink); box-shadow:var(--shadow); outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;}
+  .search input:focus{border-color:#94a3b8; box-shadow:0 0 0 3px rgba(148,163,184,.25);}
+  .search svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted);}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{cursor:pointer; user-select:none; border:1px solid var(--line); background:var(--panel);
+    padding:9px 14px; border-radius:999px; font-size:13px; font-weight:600; color:var(--muted);
+    box-shadow:var(--shadow); transition:all .18s ease;}
+  .chip:hover{border-color:#cbd5e1; color:var(--ink);}
+  .chip.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .chip:focus-visible{outline:2px solid #94a3b8; outline-offset:2px;}
+  select#sort{cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--ink);
+    padding:10px 14px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:var(--shadow); outline:none;}
+  select#sort:focus-visible{outline:2px solid #94a3b8; outline-offset:2px;}
+
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px;}
+  @media (max-width:880px){ .grid{grid-template-columns:1fr;} }
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
+    padding:20px 22px; display:flex; flex-direction:column; transition:transform .15s ease, box-shadow .15s ease;}
+  .card:hover{transform:translateY(-2px); box-shadow:0 4px 10px rgba(15,23,42,.08),0 18px 44px rgba(15,23,42,.10);}
+
+  .card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:4px;}
+  .badge{display:inline-block; padding:3px 11px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.03em;}
+  .badge.Equity{color:var(--equity); background:var(--equity-bg);}
+  .badge.Debt{color:var(--debt); background:var(--debt-bg);}
+  .badge.Fund{color:var(--fund); background:var(--fund-bg);}
+  .ret{text-align:right; flex-shrink:0;}
+  .ret b{display:block; font-size:20px; line-height:1.1; letter-spacing:-.02em; color:var(--good);}
+  .ret span{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+
+  .card h3{margin:8px 0 2px; font-size:19px; letter-spacing:-.01em;}
+  .card .sub{color:var(--muted); font-size:12.5px; margin-bottom:14px;}
+
+  .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:700; margin-bottom:3px;}
+  .what{font-size:14px; color:#334155; margin:0 0 14px;}
+  .why{background:var(--why-bg); border-left:3px solid var(--why-line); border-radius:0 8px 8px 0;
+    padding:10px 14px; margin:0 0 16px;}
+  .why .lbl{color:var(--why-ink);}
+  .why p{margin:0; font-size:14px; color:#1e293b;}
+
+  .facts{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .fact{background:#f8fafc; border:1px solid var(--line); border-radius:9px; padding:7px 11px; font-size:12.5px;}
+  .fact span{display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:1px;}
+  .fact b{font-weight:700;}
+
+  .toggle{margin-top:auto; display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none;
+    background:none; border:none; padding:8px 0 0; font-size:13px; font-weight:700; color:var(--accent); font-family:inherit;}
+  .toggle:hover{color:#000;}
+  .toggle:focus-visible{outline:2px solid #94a3b8; outline-offset:3px; border-radius:4px;}
+  .toggle .caret{transition:transform .2s ease; color:var(--muted);}
+  .card.open .toggle .caret{transform:rotate(90deg);}
+
+  .details{max-height:0; overflow:hidden; transition:max-height .3s ease;}
+  .card.open .details{max-height:1200px;}
+  .details-inner{padding-top:14px;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;}
+  @media (max-width:520px){ .cols{grid-template-columns:1fr;} }
+  .col h4{margin:0 0 7px; font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted);}
+  .col ul{margin:0; padding:0; list-style:none;}
+  .col li{position:relative; padding:3px 0 3px 19px; font-size:13px; color:#334155;}
+  .col li::before{content:""; position:absolute; left:2px; top:9px; width:8px; height:8px; border-radius:50%;}
+  .col.good li::before{background:var(--good-dot);}
+  .col.bad li::before{background:var(--bad-dot);}
+  .terms{background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:12.5px; color:#334155;}
+  .terms b{color:var(--ink);}
+  .srclink{display:inline-flex; align-items:center; gap:6px; margin-top:13px; font-size:12.5px; color:#1d4ed8; text-decoration:none; font-weight:600;}
+  .srclink:hover{text-decoration:underline;}
+
+  .empty{grid-column:1/-1; padding:50px; text-align:center; color:var(--muted); font-size:14px;}
+  footer{margin-top:26px; color:var(--muted); font-size:12px; text-align:center; line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="title">
+      <h1>Investment Pitch Dashboard</h1>
+      <p>Every outside deal on the table, summarized like a judging panel — what each one does, why you'd invest, and the headline terms at a glance.</p>
+    </div>
+    <div class="meta">
+      <div class="stat"><b id="stTotal">7</b><span>Deals</span></div>
+      <div class="stat"><b id="stEquity">0</b><span>Equity</span></div>
+      <div class="stat"><b id="stDebt">0</b><span>Debt</span></div>
+      <div class="stat"><b id="stFund">0</b><span>Funds</span></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input id="search" type="text" placeholder="Search deals, sponsors, markets…" aria-label="Search deals">
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Filter by structure">
+      <button class="chip active" data-type="all">All</button>
+      <button class="chip" data-type="Equity">Equity</button>
+      <button class="chip" data-type="Debt">Debt</button>
+      <button class="chip" data-type="Fund">Funds</button>
+    </div>
+    <select id="sort" aria-label="Sort deals">
+      <option value="name">Sort: Name (A–Z)</option>
+      <option value="return">Sort: Target return (high→low)</option>
+      <option value="type">Sort: Type</option>
+    </select>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    Summaries are AI-extracted from the source decks/memos for quick comparison — verify the numbers against the source documents before any decision.<br>
+    7 deals · June 2026
+  </footer>
+</div>
+
+<script>
+const DEALS = [
+  {
+    dealName:"Paladin Cyber Fund III", type:"Fund", returnSort:0,
+    sponsor:"Paladin Capital Group", location:"Washington DC · Silicon Valley · London",
+    assetClass:"Cybersecurity / AI / deep-tech VC fund",
+    whatTheyDo:"A venture-capital fund that takes early-stage minority stakes (with board seats) in cybersecurity, AI, and deep-tech startups — leaning on a network of ex-NSA / GCHQ operators to source deals before anyone else.",
+    whyInvest:"A proven, top-quartile manager since 2008 (prior funds 2.0–4.7x gross), a genuine proprietary-sourcing edge, and real 2025 exits at 2.1–3.5x net — in a sector with structural tailwinds. Catch: no stated forward return target and the newest vintage is still early.",
+    theAsk:"$300M target fund · $5–15M per-company checks", returnHead:"No target", returnNote:"Prior funds 2.0–4.7x gross", term:"10 yrs (+1+1+1)",
+    structure:"Closed-end VC fund — early-stage minority stakes",
+    keyTerms:"Mgmt fee 2%/yr; carry 80/20 after return of capital; GP commit 1%.",
+    strengths:["Top-quartile track record across vintages since 2008","Elite security network → first cyber investor in 98% of deals","2025 exits (CalypsoAI, Corellium, IriusRisk) at 2.1–3.5x net","Disciplined: 20.9% avg ownership, 92% board seats, low loss ratio"],
+    risks:["No stated fund-level target return","2020 vintage still early (1.7x net, 0.3 DPI) — thin realized proof","Several portfolio cos flagged low runway / restructuring","High-risk, illiquid early-stage with J-curve + FX exposure"],
+    src:"Paladin Cyber Fund III Investor Presentation Q1 2026 Final.pdf"
+  },
+  {
+    dealName:"CrossCurrent Equity Partners — Fund I", type:"Fund", returnSort:24,
+    sponsor:"CrossCurrent Equity Partners (Pape & Pujol)", location:"Texas & Sunbelt markets",
+    assetClass:"Multifamily — preferred + common equity funds",
+    whatTheyDo:"A new real-estate PE firm raising two paired funds to buy apartment communities across Texas and the Sunbelt: an Income Fund (downside-protected preferred equity) and a Growth Fund (upside common equity). Founders previously capitalized $1.1B+ / ~5,700 units.",
+    whyInvest:"Two ways to play the same Sunbelt housing thesis — steady 11–12% income or 21–24% growth — at below-market fees (1.5% / 15%) with 25% of acquisition fees shared back to LPs, plus full capital-stack control. Catch: first-time fund, no realized track record, 2-person investment team.",
+    theAsk:"Income up to $75M · Growth up to $50M · $5–25M checks", returnHead:"11–24% IRR", returnNote:"Income 1.3–1.4x · Growth 2.0–2.3x", term:"8 yrs (+1+1)",
+    structure:"Two TX LP funds — preferred (income) + common (growth)",
+    keyTerms:"Mgmt fee 1.5%; Growth 15% promote after capital + 8% pref; Income no promote; GP commit ≥1%; 25% acquisition-fee share to LPs.",
+    strengths:["Founders capitalized $1.1B+ / ~5,700 units across prior funds","Below-market fees + 25% acquisition-fee share","Discretionary, fully-capitalized → execution certainty","Strong Sunbelt/Texas absorption & in-migration tailwinds"],
+    risks:["First fund for a newly-formed (Jan 2026) firm — returns are underwriting","Key-person concentration: 2-person IC, no completed deals yet","Inconsistent disclosures (HQ city; 8% vs 10% pref)","Illiquid 8-yr hold, 70% leverage into uncertain rate/rent environment"],
+    src:"CrossCurrent Equity Partners - Investment Package - Fund I - Q2.26.pdf"
+  },
+  {
+    dealName:"Forest Way Capital — Middle Market", type:"Debt", returnSort:15,
+    sponsor:"Forest Way Capital (Will Thomas)", location:"Primary & secondary US markets",
+    assetClass:"Middle-market CRE debt (multifamily, BTR, industrial)",
+    whatTheyDo:"A commercial-real-estate private lender. Forest Way originates first-lien senior, stretch-senior, and bridge loans on middle-market apartment, build-to-rent, and industrial projects — sitting at the safest part of the capital stack and getting paid before the equity.",
+    whyInvest:"Debt-like safety with equity-like income: 9–15% IRR and 8–12% paid in cash quarterly, secured by a first lien with a 30%+ equity cushion beneath you and loans struck 25–35% below replacement cost. Backed by a 14-yr, $25B, 0.06%-loss-rate track record. Catch: floating-rate, capped upside, refi-dependent exits.",
+    theAsk:"$8–25M net check ($30–75M loans)", returnHead:"9–15% IRR", returnNote:"8–12% current pay · 1.3–1.5x", term:"36–60 months",
+    structure:"First-lien senior / stretch-senior / bridge debt, co-invest",
+    keyTerms:"Coupon SOFR + 300–450 bps; ~70% LTC; lends 25–35% below replacement cost; FWC co-invests.",
+    strengths:["First-lien, paid before equity, with 30%+ value-loss buffer","High current cash pay (8–12%) quarterly","Lends 25–35% below replacement cost → basis protection","Track record: 800+ deals, $25B deployed, 0.06% loss over 14+ yrs"],
+    risks:["Floating-rate, SOFR-indexed — returns move with rates","Exit/refi depends on agency takeout or sale clearing the loan","Minimum participation TBD; no equity upside","Illiquid 3–5 yr hold; relies on FWC underwriting quality"],
+    src:"Forest Way Capital — Middle Market.pdf"
+  },
+  {
+    dealName:"Infinity Living", type:"Debt", returnSort:18,
+    sponsor:"Rastegar Capital (developer) · Forest Way (lender)", location:"South Congress, Austin, TX",
+    assetClass:"Class A multifamily — 289-unit ground-up construction loan",
+    whatTheyDo:"A single senior construction loan, not a fund: Forest Way would lend ~$60M to developer Rastegar Capital to build Infinity Living, a 289-unit Class A apartment building on Austin's South Congress corridor.",
+    whyInvest:"You're the senior lender on a ground-up project in one of Austin's most supply-starved submarkets (8–10% vacancy vs 15% metro), protected by 35% subordinate equity (~$32M) and an $8M interest reserve sitting below you, targeting ~18% IRR. Catch: ground-up construction/lease-up risk and a tight 5.25% exit cap.",
+    theAsk:"~$60.0M senior loan (65% LTC) on $92.4M cost", returnHead:"18% IRR", returnNote:"1.42x levered · $3.98M profit", term:"4 + 1 yrs (I/O)",
+    structure:"Senior floating-rate construction loan, 65% LTC",
+    keyTerms:"SOFR + 400 (3.5% floor), ~7.7% all-in; 1% in / 1% out; ~$8.0M interest reserve; stabilized debt yield 8.0%; exit cap 5.25%.",
+    strengths:["Supply-constrained: South Austin 8–10% vacancy; only 115 planned units within 3 mi","DB-90 rezoning lifted density 92→315 units; land basis ~7.5% of cost","35% equity (~$32M) + $8M interest reserve below your position","Conservative lender underwriting vs sponsor assumptions"],
+    risks:["Ground-up construction + 28-mo build & lease-up risk (Elevated)","Floating-rate exposure at SOFR+400","Tight 5.25% exit cap on forward NOI","Limited sponsor ground-up track record; ~2% co-invest"],
+    src:"Infinity Living - Deal Overview (04.10).pdf"
+  },
+  {
+    dealName:"The Link at Twin Creeks", type:"Debt", returnSort:15.3,
+    sponsor:"Forest Way (lender) · Greystar-managed", location:"Allen, TX (North DFW)",
+    assetClass:"Class A multifamily — 366 units, 2021 vintage",
+    whatTheyDo:"Another single senior loan: a $76M whole loan from Forest Way against The Link at Twin Creeks, a 2021-built, 366-unit Class A apartment community in Allen (North Dallas), professionally managed by Greystar.",
+    whyInvest:"A 'supply-cliff' play — the local construction pipeline has collapsed 87% — combined with 11.4% of built-in rent upside as below-market leases roll, at a basis 25%+ below replacement cost, targeting 15.3% IRR. Catch: aggressive 89.4% leverage, a sub-1.0x going-in DSCR, and meaningful take-out risk.",
+    theAsk:"$76.0M whole loan · FWC net $22.8M", returnHead:"15.3% IRR", returnNote:"1.47x · ~$10.6M profit", term:"3 + 1 + 1 yrs",
+    structure:"Senior whole loan with PIK component; back-leverage assumed",
+    keyTerms:"89.4% LTV; $207,715/unit; in-place debt yield 5.39%; SOFR + 400 (3.25% floor); PIK 1.25–1.75%; in-place DSCR 0.71x.",
+    strengths:["Supply cliff: forward pipeline down 87% to 325 units, zero proposed","11.4% embedded loss-to-lease; 335 leases roll within 15 mo","Basis 17% below comps, 25%+ below replacement cost","2021 Class A, Greystar-managed, ~93–94% occupancy"],
+    risks:["High leverage (89.4% LTV) with low going-in debt yield (5.39%)","Initial negative leverage / sub-1.0x DSCR (0.71x) — needs PIK","Take-out risk (Elevated) with only a first lien","Cap-rate sensitivity at 4.75% assumed exit cap"],
+    src:"Link at Twin Creeks - Draft Memo.pdf"
+  },
+  {
+    dealName:"Tate Tanglewood", type:"Debt", returnSort:14.11,
+    sponsor:"Galium Capital · Dayrise Residential ($750M+ AUM)", location:"Galleria/Uptown, Houston, TX",
+    assetClass:"Class A multifamily — 431 units, 2016 vintage",
+    whatTheyDo:"A senior loan to refinance Tate Tanglewood, a 2016-built, 431-unit Class A apartment community in Houston's Galleria/Uptown area, owned by Galium Capital and managed by Dayrise Residential.",
+    whyInvest:"You'd lend at a $130K/unit basis — ~38% below comparable sales and below the owner's 2021 purchase price — against an asset outperforming its market (92% occupied vs 12.5% submarket vacancy), targeting 14.1% levered IRR. Catch: a sub-1.0x going-in DSCR and Houston's record-high metro vacancy with negative rent growth.",
+    theAsk:"$56.1M whole-loan refi ($130,135/unit) · 70.2% LTV", returnHead:"14.1% IRR", returnNote:"1.41x levered · 8.08% unlevered", term:"3 + 1 + 1 yrs",
+    structure:"Floating-rate senior whole-loan refinance (no back-leverage)",
+    keyTerms:"SOFR + 350, ~7.2% all-in; 1% origination; 1% exit; max LTV 75%; going-in DSCR 0.92; exit cap 5.3%.",
+    strengths:["Deep basis: $130,135/unit is 38% below comps & below 2021 purchase","Houston Class A deliveries forecast down 49% by 2027","Outperforms market: 92.3% occupancy vs 12.5% submarket vacancy","Conservative underwriting + ~$27.8M sponsor equity remaining"],
+    risks:["Going-in DSCR 0.92 (<1.0x) — NOI doesn't cover debt service","Houston oversupply: record 12.7% metro vacancy, negative rent growth","Floating-rate exposure (SOFR + 350)","Weak 3-bed segment (41.7% vacancy); exit relies on 5.3% cap"],
+    src:"Tate_Tanglewood_Credit_Memo (03.31.2026) Clean.pdf"
+  },
+  {
+    dealName:"Alon at Castle Hills", type:"Equity", returnSort:18.5,
+    sponsor:"CrossCurrent Equity Partners (CCEP)", location:"North Central San Antonio, TX",
+    assetClass:"Multifamily — 306-unit, 2000 vintage garden",
+    whatTheyDo:"A direct equity investment (JV) to acquire Alon at Castle Hills, a stabilized 306-unit, 2000-vintage apartment community in North Central San Antonio. Here you'd own a piece of the deal, not lend against it.",
+    whyInvest:"Buy below replacement cost ($115K/unit vs ~$189K to build) in a submarket with zero new supply within 3 miles, with fixed-rate debt locked for the full hold and recession-resistant demand (Medical Center, USAA, military), targeting 18.5% LP IRR / 2.08x over 5 years. Catch: 2000-vintage capex risk, near-term San Antonio rent softening, and tax/insurance reassessment.",
+    theAsk:"$13.0M LP equity ($42,596/unit) · $37.4M total cost", returnHead:"18.5% LP IRR", returnNote:"2.08x equity · 10% avg cash-on-cash", term:"5-year hold",
+    structure:"Fee-simple JV (LP/GP) equity hold; no PFC / AMI restrictions",
+    keyTerms:"Entry $115K/unit (vs ~$189K replacement); senior debt $22.9M (65% LTV) at 5.35% fixed; exit cap 6.50%; 93.5% occupancy.",
+    strengths:["Below replacement cost with supply moat — 0 units under construction within 3 mi","Recession-resistant demand: Medical Center, USAA, JBSA, airport","Clean stabilized base (47.9% NOI margin) + funded value-add","Fixed-rate debt for full hold; 1.76x Year-1 DSCR"],
+    risks:["Elevated metro vacancy / near-term rent softening in San Antonio","Asset age (2000) — capex/condition risk; $374K rehab at close","Property-tax reassessment on sale + insurance normalization","Exit dependent on achieving 6.50% cap"],
+    src:"Alon Castle Hills - LP Report 6.02.2026.pdf"
+  }
+];
+
+const grid = document.getElementById('grid');
+const searchEl = document.getElementById('search');
+const sortEl = document.getElementById('sort');
+let activeType='all';
+
+document.getElementById('stTotal').textContent = DEALS.length;
+document.getElementById('stEquity').textContent = DEALS.filter(d=>d.type==='Equity').length;
+document.getElementById('stDebt').textContent = DEALS.filter(d=>d.type==='Debt').length;
+document.getElementById('stFund').textContent = DEALS.filter(d=>d.type==='Fund').length;
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function cardHtml(d,i){
+  return `
+  <article class="card" data-i="${i}">
+    <div class="card-head">
+      <span class="badge ${d.type}">${d.type}</span>
+      <div class="ret"><b>${esc(d.returnHead)}</b><span>Target Return</span></div>
+    </div>
+    <h3>${esc(d.dealName)}</h3>
+    <div class="sub">${esc(d.sponsor)} · ${esc(d.location)}</div>
+
+    <div class="lbl">What they do</div>
+    <p class="what">${esc(d.whatTheyDo)}</p>
+
+    <div class="why">
+      <div class="lbl">Why invest</div>
+      <p>${esc(d.whyInvest)}</p>
+    </div>
+
+    <div class="facts">
+      <div class="fact"><span>The Ask</span><b>${esc(d.theAsk)}</b></div>
+      <div class="fact"><span>Term</span><b>${esc(d.term)}</b></div>
+      ${d.returnNote?`<div class="fact"><span>Return detail</span><b>${esc(d.returnNote)}</b></div>`:''}
+    </div>
+
+    <button class="toggle" aria-expanded="false"><span class="caret">▶</span> Strengths, risks &amp; terms</button>
+    <div class="details">
+      <div class="details-inner">
+        <div class="cols">
+          <div class="col good"><h4>Strengths</h4><ul>${d.strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+          <div class="col bad"><h4>Risks / watch-outs</h4><ul>${d.risks.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+        </div>
+        <div class="terms"><b>Structure:</b> ${esc(d.structure)}<br><b>Key terms:</b> ${esc(d.keyTerms)}</div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const q=searchEl.value.trim().toLowerCase();
+  let list=DEALS.map((d,i)=>({d,i}))
+    .filter(({d})=> activeType==='all'||d.type===activeType)
+    .filter(({d})=> !q || (d.dealName+' '+d.sponsor+' '+d.assetClass+' '+d.location+' '+d.whatTheyDo).toLowerCase().includes(q));
+
+  const mode=sortEl.value;
+  list.sort((a,b)=>{
+    if(mode==='return') return b.d.returnSort-a.d.returnSort;
+    if(mode==='type') return a.d.type.localeCompare(b.d.type)||a.d.dealName.localeCompare(b.d.dealName);
+    return a.d.dealName.localeCompare(b.d.dealName);
+  });
+
+  grid.innerHTML = list.length ? list.map(({d,i})=>cardHtml(d,i)).join('')
+    : '<div class="empty">No deals match your filters.</div>';
+  bind();
+}
+
+function bind(){
+  grid.querySelectorAll('.toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const card=btn.closest('.card');
+      const open=card.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+  });
+}
+
+document.getElementById('chips').addEventListener('click', e=>{
+  const b=e.target.closest('.chip'); if(!b) return;
+  activeType=b.dataset.type;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c===b));
+  render();
+});
+searchEl.addEventListener('input', render);
+sortEl.addEventListener('change', render);
+render();
+</script>
+</body>
+</html>
