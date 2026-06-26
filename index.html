@@ -116,6 +116,10 @@
   select#sort{cursor:pointer; border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
     padding:10px 14px; border-radius:11px; font-size:13px; font-weight:600; font-family:inherit; outline:none;}
   select#sort:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+  .dl-btn{cursor:pointer; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--brand); background:var(--brand); color:#fff; font-family:inherit; font-size:13px; font-weight:700; padding:10px 16px; border-radius:11px; box-shadow:var(--shadow-sm); transition:all .18s ease; white-space:nowrap;}
+  .dl-btn:hover{filter:brightness(1.08); transform:translateY(-1px);}
+  .dl-btn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+  :root[data-theme="dark"] .dl-btn{color:#04201d;}
 
   /* ---------- Grid + cards ---------- */
   .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
@@ -249,18 +253,45 @@
   .pdf-btn:hover{border-color:var(--brand); color:var(--brand);}
   .pdf-btn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 
+  #printsheet{display:none;}
+
   @media print{
-    @page{margin:14mm;}
-    :root, :root[data-theme="dark"]{ --surface:#fff; --surface-2:#fff; --ink:#0b1220; --ink-soft:#33405a; --muted:#5b6b80; --line:#d7deea; --why-bg:#eef6f4; --why-line:#0f766e; --why-ink:#0b4f49; --good-dot:#0a8f5b; --bad-dot:#c2334d; --ret:#0b7a5e; --strip:#0f766e; }
+    @page{margin:12mm;}
+    :root, :root[data-theme="dark"]{ --surface:#fff; --surface-2:#fff; --ink:#0b1220; --ink-soft:#33405a; --muted:#5b6b80; --line:#d7deea; --equity:#047857; --equity-bg:#e8f7f0; --debt:#b45309; --debt-bg:#fdf4e7; --fund:#6d28d9; --fund-bg:#f3eefe; --why-bg:#eef6f4; --why-line:#0f766e; --why-ink:#0b4f49; --good-dot:#0a8f5b; --bad-dot:#c2334d; --ret:#0b7a5e; --strip:#0f766e; }
     html,body{background:#fff !important;}
-    .hero,.controls,footer{display:none !important;}
-    .grid{display:block !important;}
-    .card{display:none !important;}
-    .card.print-target{display:flex !important; break-inside:avoid; box-shadow:none !important; transform:none !important; border:1px solid #d7deea !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-    .card.print-target .toggle,.card.print-target .vbar{display:none !important;}
-    .card.print-target .details{max-height:none !important; overflow:visible !important;}
-    .card.print-target .thumb:has(.thumb-fallback){display:none !important;}
-    .card.print-target .thumb img{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .hero,.controls,.views-tabs,footer{display:none !important;}
+    #scatter,#scorecard,#map{display:none !important;}
+
+    /* per-deal one-pager (a card has .print-target) */
+    body:not(.print-all) #grid{display:block !important;}
+    body:not(.print-all) .card{display:none !important;}
+    body:not(.print-all) .card.print-target{display:flex !important; break-inside:avoid; box-shadow:none !important; transform:none !important; border:1px solid #d7deea !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    body:not(.print-all) .card.print-target .toggle,
+    body:not(.print-all) .card.print-target .vbar{display:none !important;}
+    body:not(.print-all) .card.print-target .details{max-height:none !important; overflow:visible !important;}
+    body:not(.print-all) .card.print-target .thumb:has(.thumb-fallback){display:none !important;}
+
+    /* all-deals brief */
+    body.print-all #grid{display:none !important;}
+    body.print-all #printsheet{display:block !important; color:#0b1220; font-family:var(--font-ui); -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .ps-cover{padding:0 0 12px; border-bottom:2px solid #0f766e; margin-bottom:14px;}
+    .ps-cover .ps-mark{font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0f766e;}
+    .ps-cover h1{font-family:var(--font-display); font-size:28px; margin:5px 0 6px;}
+    .ps-cover .ps-meta{font-size:11px; color:#5b6b80; line-height:1.5;}
+    .ps-group{break-after:avoid; break-inside:avoid; font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; color:#33405a; font-weight:700; margin:16px 0 9px; padding-bottom:5px; border-bottom:1px solid #d7deea;}
+    .ps-group span{background:#eef2f7; border-radius:999px; padding:1px 8px; font-size:10.5px; margin-left:4px;}
+    .ps-deal{display:flex; gap:13px; break-inside:avoid; padding:11px 13px; border:1px solid #d7deea; border-left:4px solid var(--strip); border-radius:9px; margin-bottom:11px;}
+    .ps-deal.t-Equity{--strip:#10b981;} .ps-deal.t-Debt{--strip:#f59e0b;} .ps-deal.t-Fund{--strip:#8b5cf6;}
+    .ps-img{width:148px; flex:0 0 148px;}
+    .ps-img img{width:100%; height:106px; object-fit:cover; border-radius:7px;}
+    .ps-noimg{display:flex; align-items:center; justify-content:center; height:106px; background:#eef2f7; border-radius:7px; color:#94a3b8; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.06em;}
+    .ps-b{flex:1; min-width:0;}
+    .ps-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+    .ps-ret{font-weight:700; color:#0b7a5e; font-size:11.5px; text-align:right; white-space:nowrap;}
+    .ps-b h3{font-size:15px; margin:4px 0 1px;}
+    .ps-sub{font-size:10.5px; color:#5b6b80; margin-bottom:5px;}
+    .ps-b p{font-size:11px; line-height:1.45; margin:0 0 6px; color:#33405a;}
+    .ps-facts{font-size:10.5px; color:#33405a;}
   }
 
   .empty{grid-column:1/-1; padding:60px; text-align:center; color:var(--muted); font-size:14px;}
@@ -337,6 +368,10 @@
       <option value="Diligence">Diligence</option>
       <option value="Decided">Decided</option>
     </select>
+    <button class="dl-btn" id="dlBtn" title="Download all deals as a one-PDF brief">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      Download PDF
+    </button>
   </div>
 
   <div class="views-tabs" id="tabs" role="tablist">
@@ -350,6 +385,7 @@
   <div class="view" id="scatter" hidden></div>
   <div class="view" id="scorecard" hidden></div>
   <div class="view" id="map" hidden></div>
+  <div id="printsheet" aria-hidden="true"></div>
 
   <footer>
     Summaries are AI-extracted from the source decks/memos for quick comparison — verify the numbers against the source documents before any decision.<br>
@@ -741,7 +777,21 @@ searchEl.addEventListener('input',render);
 sortEl.addEventListener('change',render);
 document.getElementById('vfilter').addEventListener('change',render);
 document.getElementById('sfilter').addEventListener('change',render);
-window.addEventListener('afterprint',()=>document.querySelectorAll('.print-target').forEach(c=>c.classList.remove('print-target')));
+window.addEventListener('afterprint',()=>{document.querySelectorAll('.print-target').forEach(c=>c.classList.remove('print-target')); document.body.classList.remove('print-all');});
+
+function buildPrintSheet(){
+  const order={Fund:0,Equity:1,Debt:2}, label={Fund:'Funds',Equity:'Equity',Debt:'Debt'};
+  const ds=DEALS.slice().sort((a,b)=>(order[a.type]-order[b.type])||a.dealName.localeCompare(b.dealName));
+  let html=`<div class="ps-cover"><div class="ps-mark">Deal Board · Investment Pitch Review</div><h1>Investment Pitch Brief</h1><div class="ps-meta">${DEALS.length} active deals · June 2026 · brief summaries — open the live dashboard for full detail, risks, scoring &amp; filters:&nbsp; coltstan.github.io/investment-pitch-dashboard</div></div>`;
+  let lt=null;
+  ds.forEach(d=>{
+    if(d.type!==lt){lt=d.type; const c=ds.filter(x=>x.type===d.type).length; html+=`<h2 class="ps-group">${label[d.type]} <span>${c}</span></h2>`;}
+    html+=`<div class="ps-deal t-${d.type}">${d.img?`<div class="ps-img"><img src="${d.img}" alt=""></div>`:`<div class="ps-img ps-noimg"><span>${d.type}</span></div>`}<div class="ps-b"><div class="ps-top"><span class="badge ${d.type}"><i></i>${d.type}</span><span class="ps-ret">${esc(d.returnHead)}</span></div><h3>${esc(d.dealName)}</h3><div class="ps-sub">${esc(d.sponsor)} · ${esc(d.location)}</div><p>${esc(d.whatTheyDo)}</p><div class="ps-facts"><b>Ask:</b> ${esc(d.theAsk)} &nbsp;·&nbsp; <b>Target return:</b> ${esc(d.returnHead)}${d.returnNote?' ('+esc(d.returnNote)+')':''} &nbsp;·&nbsp; <b>Term:</b> ${esc(d.term)}</div></div></div>`;
+  });
+  document.getElementById('printsheet').innerHTML=html;
+}
+document.getElementById('dlBtn').addEventListener('click',()=>{buildPrintSheet(); document.body.classList.add('print-all'); setTimeout(()=>window.print(),80);});
+
 render();
 </script>
 </body>
