@@ -54,6 +54,23 @@
     background-attachment:fixed; -webkit-font-smoothing:antialiased; min-height:100vh;
     transition:background-color .35s ease, color .35s ease;}
   .wrap{max-width:1320px; margin:0 auto; padding:30px 22px 90px;}
+  html.locked .wrap{display:none !important;}
+  html.locked #gate{display:flex !important;}
+  #gate{display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; padding:20px;
+    background:linear-gradient(180deg,#0b1220,#0a1020);}
+  .gate-card{background:#10172a; border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:32px 30px; width:100%; max-width:380px;
+    box-shadow:0 30px 70px rgba(0,0,0,.6); text-align:center; color:#eaf0fb; font-family:var(--font-ui);}
+  .gate-card .mark{width:52px; height:52px; border-radius:14px; margin:0 auto 16px; display:grid; place-items:center; color:#fff;
+    background:linear-gradient(135deg,#0f766e,#8b5cf6);}
+  .gate-card h2{font-family:var(--font-display); font-weight:600; font-size:22px; margin:0 0 6px; letter-spacing:-.01em;}
+  .gate-card p{margin:0 0 20px; font-size:13px; color:#8a97ad;}
+  .gate-card input{width:100%; padding:12px 14px; border-radius:11px; border:1px solid rgba(255,255,255,.14); background:#0c1322; color:#eaf0fb;
+    font-size:15px; font-family:inherit; outline:none; text-align:center; letter-spacing:.02em;}
+  .gate-card input:focus{border-color:#2dd4bf; box-shadow:0 0 0 3px rgba(45,212,191,.25);}
+  .gate-card button{width:100%; margin-top:12px; padding:12px 14px; border:none; border-radius:11px; cursor:pointer;
+    background:#2dd4bf; color:#04201d; font-size:14px; font-weight:800; font-family:inherit; transition:filter .15s ease;}
+  .gate-card button:hover{filter:brightness(1.07);}
+  .gate-err{color:#fb7185; font-size:12.5px; margin-top:12px; min-height:16px; font-weight:600;}
 
   /* ---------- Hero ---------- */
   .hero{margin-bottom:24px;}
@@ -339,8 +356,24 @@
     *{animation:none !important; transition:none !important; scroll-behavior:auto !important;}
   }
 </style>
+<script>
+  // Gate only on the public host; local working copy stays open.
+  if(location.hostname.endsWith('github.io') && localStorage.getItem('deal-unlock')!=='1'){
+    document.documentElement.classList.add('locked');
+  }
+</script>
 </head>
 <body>
+<div id="gate">
+  <div class="gate-card">
+    <div class="mark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <h2>Deal Board</h2>
+    <p>This dashboard is private. Enter the password to continue.</p>
+    <input id="gatePw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password">
+    <button id="gateBtn">Unlock</button>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+</div>
 <div class="wrap">
   <header class="hero">
     <div class="hero-top">
@@ -942,6 +975,27 @@ document.getElementById('dlBtn').addEventListener('click',function(){downloadPDF
 document.getElementById('printBtn').addEventListener('click',()=>{buildPrintSheet(); document.body.classList.add('print-all'); setTimeout(()=>window.print(),80);});
 
 render();
+
+// ---------- password gate (public host only) ----------
+(function(){
+  const PW_HASH="fcef7e174dac51795a2fbc950b20656a753d03af8fb224f5a6ce2dab27d47435";
+  const gate=document.getElementById('gate'), pw=document.getElementById('gatePw'), btn=document.getElementById('gateBtn'), err=document.getElementById('gateErr');
+  if(!gate) return;
+  async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+  async function tryUnlock(){
+    err.textContent='';
+    try{
+      if(await sha256(pw.value)===PW_HASH){
+        try{localStorage.setItem('deal-unlock','1');}catch(e){}
+        document.documentElement.classList.remove('locked');
+        gate.style.display='none';
+      } else { err.textContent='Incorrect password.'; pw.value=''; pw.focus(); }
+    }catch(e){ err.textContent='This browser blocked the check — open over https.'; }
+  }
+  btn.addEventListener('click',tryUnlock);
+  pw.addEventListener('keydown',e=>{ if(e.key==='Enter') tryUnlock(); });
+  if(document.documentElement.classList.contains('locked')) setTimeout(()=>pw.focus(),50);
+})();
 </script>
 </body>
 </html>
