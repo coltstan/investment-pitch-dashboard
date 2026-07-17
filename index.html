@@ -424,7 +424,7 @@
 
   <footer>
     Summaries are AI-extracted from the source decks/memos for quick comparison — verify the numbers against the source documents before any decision.<br>
-    14 deals · June 2026</footer>
+    15 deals · June 2026</footer>
 </div>
 
 <script>
@@ -612,6 +612,19 @@ const DEALS = [
     strengths:["Proprietary data moat: exclusive agreement with Pattern (NASDAQ: PTRN, ~$2B Amazon sales) for white-space brand launches","Real validation: ~$7.5M acquihired revenue (Kynetic: MGM/NASCAR/MLB/NHL) + closed Yr-1 private-label contracts (Walmart, Nordstrom, Sprouts, QVC)","Heavyweight operator team (CAA, Nike, NBCUniversal, Expedia — David Freeman / Brian Schwartz)","Model shows scale + margin: ~$31M to $214M revenue and a 43% EBITDA margin by Year 5"],
     risks:["Returns (~45% IRR / 6.5x) are the sponsor's projections at an assumed 7x exit — highly speculative","Most revenue is forecast / contracted-not-yet-earned (Year 1 = 2027), not realized today","Concentration on a single data partner (Pattern) and a few retailers; multi-line execution risk","Early-stage, illiquid minority growth equity; brand-level dilution and talent dependency"],
     src:""
+  },
+  {
+    dealName:"ATOMS (CSS Solutions)", type:"Equity", returnSort:45,
+    sponsor:"Travis Kalanick / CSS Solutions · a16z-led round", location:"United States — deep-tech conglomerate",
+    assetClass:"Late-stage venture — Class A Preferred (co-invest w/ a16z)",
+    whatTheyDo:"The holding company (CSS Solutions, led by Travis Kalanick) behind a deep-tech conglomerate across three verticals: food & robotics (CloudKitchens + Lab37 kitchen automation + the Picnic / ProFood businesses), mining (Pronto autonomous haulage), and autonomous transport (retrofitting ridehail fleets with sensors to collect LiDAR/video data and build a Waymo-class AV platform). This round funds scaling Lab37 manufacturing, Pronto deployment, and the AV data fleet.",
+    whyInvest:"A chance to co-invest alongside a16z (leading $1.0B of a ~$1.5B round) in senior Class A Preferred of Kalanick's conglomerate at a $15B pre-money, pitched as an asymmetric bet: downside framed as capital-protected by ~$7.5B of gross legacy sum-of-the-parts (food + US/Middle-East real estate + patents), with a base case of ~2.5-3x if the plan lands and autonomy is credited at IPO ('28-30), ~6x if the AV platform earns Waymo-class value, and >10x in the bull case. Combined run-rate is modeled to grow from ~$48M (2026) to ~$1.08B (2028). Catch: it is a signed but NON-BINDING term sheet (definitive docs, diligence, business consolidation and approvals all outstanding); the transport/AV segment is entirely pre-launch (company plan, not operating evidence) premised on beating Waymo's scale in two years; a 10-year transfer lock with Kalanick super-voting control; and every valuation and return figure is the sponsor's own estimate.",
+    theAsk:"Syndicate allocation up to $500M · $15B pre / $16.5B post", returnHead:"2.5-3x base", returnNote:"~6x upside / >10x bull (sponsor); downside asset-covered", term:"10-yr transfer lock; exit via IPO ('28-30 target)",
+    structure:"Class A Preferred Units (senior) co-investing alongside a16z; 1x preference + participation; a16z leads $1.0B of a $1.0-1.75B round",
+    keyTerms:"$15.0B pre / $16.5B post; a16z $1.0B lead (100% of Class A); 1x preference then 100% common catch-up then pro-rata participation; broad-based WA anti-dilution; lead board seat 5 yrs; Kalanick super-voting (100 votes/unit); 10-yr transfer restriction + ROFR, terminates at IPO. Signed term sheet 8 May 2026 (non-binding); closing conditioned on consolidating CSS food + TAV mining/transport.",
+    strengths:["Co-invest alongside a16z (leading $1.0B) in senior Class A Preferred at a $15B pre-money","Downside framed as asset-covered: 1x preference over ~$7.5B of gross legacy SOTP (food + US/ME real estate + patents)","Multiple real, revenue-generating businesses (CloudKitchens / Lab37, Pronto mining) plus an option on the AV/autonomy platform","Sponsor upside: ~2.5-3x base, ~6x at Waymo-class AV value, >10x bull; run-rate modeled $48M to $1.08B by 2028"],
+    risks:["Signed but NON-BINDING term sheet — definitive docs, diligence, business consolidation (CSS food + TAV) and approvals all outstanding","Transport/AV segment is entirely pre-launch (company plan, not operating evidence), premised on surpassing Waymo's scale in 2 years","10-year transfer restriction + ROFR and Kalanick super-voting (100 votes/unit) — minority, illiquid, low control","All valuations and return multiples are the sponsor's own estimates; $15B pre-money is rich; multi-vertical execution risk"],
+    src:""
   }
 ];
 
@@ -728,7 +741,8 @@ const META={
  "515 Congress":{retPct:23,risk:4,sizeM:107,lat:30.268,lng:-97.742,scores:[5,2,3,2,3]},
  "Exchange 195":{retPct:18.1,risk:5,sizeM:42,lat:30.72,lng:-97.72,scores:[4,2,4,2,4]},
  "Hope Alliance (Build-to-Suit)":{retPct:22,risk:3,sizeM:16,lat:30.51,lng:-97.82,scores:[4,3,4,2,4]},
- "Asent (HoldCo)":{retPct:45,risk:5,sizeM:20,lat:34.05,lng:-118.24,scores:[5,1,4,1,3]}
+ "Asent (HoldCo)":{retPct:45,risk:5,sizeM:20,lat:34.05,lng:-118.24,scores:[5,1,4,1,3]},
+ "ATOMS (CSS Solutions)":{retPct:45,risk:5,sizeM:500,lat:34.02,lng:-118.29,scores:[5,3,4,1,3]}
 };
 const CRITERIA=[["Return",30],["Downside",25],["Sponsor",20],["Liquidity",10],["Terms",15]];
 let WEIGHTS=CRITERIA.map(c=>c[1]);
