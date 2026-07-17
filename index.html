@@ -978,7 +978,7 @@ render();
 
 // ---------- password gate (public host only) ----------
 (function(){
-  const PW_HASH="fcef7e174dac51795a2fbc950b20656a753d03af8fb224f5a6ce2dab27d47435";
+  const PW_HASH="216ec11d6207aea98bba1b93246d7028c48de5cd3ae93c0f7a997a625ad9f349";
   const gate=document.getElementById('gate'), pw=document.getElementById('gatePw'), btn=document.getElementById('gateBtn'), err=document.getElementById('gateErr');
   if(!gate) return;
   async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
