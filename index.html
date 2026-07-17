@@ -262,14 +262,15 @@
   .compbar{display:inline-block; width:78px; height:7px; border-radius:999px; background:var(--line); overflow:hidden; vertical-align:middle; margin-right:8px;}
   .compbar span{display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--fund-strip));}
   .comp b{vertical-align:middle; font-size:14px;}
-  table.ltable{width:100%; border-collapse:collapse; min-width:960px; font-size:13px;}
-  .ltable th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:9px 10px; border-bottom:1px solid var(--line); font-weight:700; white-space:nowrap;}
-  .ltable td{padding:11px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+  table.ltable{width:100%; border-collapse:collapse; min-width:820px; font-size:13px;}
+  .ltable th{text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:7px 12px; border-bottom:1px solid var(--line); font-weight:700; white-space:nowrap;}
+  .ltable td{padding:6px 12px; border-bottom:1px solid var(--line-soft); vertical-align:middle; white-space:nowrap;}
   .ltable tr:hover td{background:var(--surface-2);}
-  .ltable td.dn{font-weight:700; white-space:nowrap;}
+  .ltable td.dn{font-weight:700;}
   .ltable td.mut{color:var(--ink-soft); font-size:12.5px;}
+  .ltable .cap{display:inline-block; max-width:210px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle;}
   .ltable .ret2{color:var(--ret); font-weight:700; white-space:nowrap;}
-  .ltable .from{color:var(--muted); font-size:11.5px;}
+  .ltable .from{color:var(--muted);}
   .ltable a.doc{display:inline-flex; align-items:center; gap:5px; color:var(--brand); font-weight:700; text-decoration:none; font-size:12.5px; white-space:nowrap;}
   .ltable a.doc:hover{text-decoration:underline;}
   #mapcanvas{height:480px; border-radius:12px; overflow:hidden; border:1px solid var(--line);}
@@ -813,14 +814,15 @@ function renderList(deals){
   const DOC='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
   const rows=deals.map(d=>{
     const v=(marks[d.dealName]||{}).verdict||'';
+    const prov=(d.received||'—')+(d.sentBy?' · '+d.sentBy:'');
     return `<tr>
       <td class="dn"><span class="vdot ${v}"></span>${esc(d.dealName)}</td>
       <td><span class="badge ${d.type}"><i></i>${d.type}</span></td>
-      <td class="mut">${esc(d.sponsor)}</td>
-      <td class="mut">${esc(d.theAsk)}</td>
+      <td class="mut"><span class="cap" title="${esc(d.sponsor)}">${esc(d.sponsor)}</span></td>
+      <td class="mut"><span class="cap" title="${esc(d.theAsk)}">${esc(d.theAsk)}</span></td>
       <td class="ret2">${esc(d.returnHead)}</td>
       <td class="mut">${esc(d.term)}</td>
-      <td class="mut">${esc(d.received||'—')}${d.sentBy?`<br><span class="from">${esc(d.sentBy)}</span>`:''}</td>
+      <td class="mut"><span class="cap" title="${esc(prov)}">${esc(prov)}</span></td>
       <td>${d.src?`<a class="doc" href="${encodeURI(d.src)}" target="_blank" rel="noopener">${DOC} Open</a>`:''}</td>
     </tr>`;}).join('');
   document.getElementById('list').innerHTML=`<div class="panel"><div class="panel-h"><h3>All deals</h3><span>${deals.length} shown — same filters &amp; sort as Cards</span></div><div class="svgwrap"><table class="ltable"><thead><tr><th>Deal</th><th>Type</th><th>Sponsor</th><th>The Ask</th><th>Return</th><th>Term</th><th>Received / From</th><th>Doc</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
